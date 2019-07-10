@@ -12,7 +12,7 @@
 			body {
 				margin: 0;
 				padding: 0;
-				background-image: url('logo.png');
+				//background-image: url('logo.png');
 				background-repeat: no-repeat;
 				background-position: center center;
 				background-color: #ffffff;
@@ -80,13 +80,13 @@
 			folderShape.add(settings, 'logoCornerRadius').onFinishChange(updateShape);
 			folderShape.add(settings, 'logoBottomPinch').onFinishChange(updateShape);
 
-			gui.add(settings, 'officialLogoBackground').onFinishChange(() => {
+			/*gui.add(settings, 'officialLogoBackground').onFinishChange(() => {
 				if (settings.officialLogoBackground) {
 					scene.background = null;
 				} else {
 					scene.background = new THREE.Color( 0xFFFFFF );
 				}
-			});
+			});*/
 
 			init();
 			animate();
@@ -113,12 +113,12 @@
 					},
 					vertexShader: `
 						varying vec4 vPos;
-						varying vec4 vModelViewPos;
+						varying vec3 vNorm;
 
 						void main() {
 							vPos = vec4(position, 1.0);
-							vModelViewPos = modelViewMatrix * vPos;
-							gl_Position = projectionMatrix * vModelViewPos;
+							vNorm = normalMatrix * normal;
+							gl_Position = projectionMatrix * modelViewMatrix * vPos;
 						}
 					`,
 					fragmentShader: `
@@ -126,11 +126,14 @@
 						uniform vec3 color2;
 					
 						varying vec4 vPos;
-						varying vec4 vModelViewPos;
+						varying vec3 vNorm;
+
+						const vec3 backDir = vec3(-1, 0, 0);
 						
 						void main() {
 							float colorMix = (vPos.y + (${height} * 0.5)) / ${height};
-							float alpha = 1.0;
+							float frontness = dot(vNorm, backDir) + 0.75;
+							float alpha = clamp(frontness, 0.75, 1.0);
 							gl_FragColor = vec4(mix(color1, color2, colorMix), alpha);
 						}
 					`,
@@ -169,16 +172,13 @@
 						let hw_br = lerp(hw * bs, hw, rhr);
 						let hh_r = lerp(hh, hh - bottomPinch, rbwr);
 
-						ctx.moveTo( -hw_br, -hh + radius );
-						ctx.lineTo( -hw_r, hh - radius );
-						ctx.quadraticCurveTo( -hw, hh, -hw + radius, hh );
-						ctx.lineTo( hw - radius, hh );
-						ctx.quadraticCurveTo( hw, hh, hw_r, hh - radius );
-						ctx.lineTo( hw_br, -hh + radius );
-						ctx.quadraticCurveTo( hw * bs, -hh, (hw - radius) * bs, -hh_r );
+						ctx.moveTo( hw_br, -hh + radius );
+						ctx.lineTo( hw_r, hh - radius );
+						ctx.quadraticCurveTo( hw, hh, hw - radius, hh );
+						ctx.lineTo( 0, hh );
 						ctx.lineTo( 0, -hh + bottomPinch );
-						ctx.lineTo( (-hw + radius) * bs, -hh_r );
-						ctx.quadraticCurveTo( -hw * bs, -hh, -hw_br, -hh + radius );
+						ctx.lineTo( (hw - radius) * bs, -hh_r );
+						ctx.quadraticCurveTo( hw * bs, -hh, hw_br, -hh + radius );
 					} )( shape,
 						settings.logoWidth,
 						settings.logoBottomScale,
@@ -188,15 +188,31 @@
 
 					var geometry = new THREE.ShapeBufferGeometry( shape );
 
-					var mesh = new THREE.Mesh( geometry, XRLogoShader(new THREE.Color(0xFD0003), new THREE.Color(0xAE100F), settings.logoHeight) ); //new THREE.MeshPhongMaterial( { color: color, side: THREE.DoubleSide } ) );
+					// Rear Right Fin
+					var mesh = new THREE.Mesh( geometry, XRLogoShader(new THREE.Color(0xAE100F), new THREE.Color(0xD40002), settings.logoHeight) );
 					mesh.position.set( x, y, z );
-					mesh.rotation.set( rx, ry - Math.PI/4, rz );
+					mesh.rotation.set( rx, ry + Math.PI*0.25, rz );
 					mesh.scale.set( s, s, s );
 					shapeGroup.add( mesh );
 
-					var mesh = new THREE.Mesh( geometry, XRLogoShader(new THREE.Color(0xAE100F), new THREE.Color(0xFD0003), settings.logoHeight) );
+					// Rear Left Fin
+					var mesh = new THREE.Mesh( geometry, XRLogoShader(new THREE.Color(0xFD0003), new THREE.Color(0xD20002), settings.logoHeight) );
 					mesh.position.set( x, y, z );
-					mesh.rotation.set( rx, ry + Math.PI/4, rz );
+					mesh.rotation.set( rx, ry + Math.PI*0.75, rz );
+					mesh.scale.set( s, s, s );
+					shapeGroup.add( mesh );
+
+					// Front Left Fin
+					var mesh = new THREE.Mesh( geometry, XRLogoShader(new THREE.Color(0xAE100F), new THREE.Color(0xD40002), settings.logoHeight) );
+					mesh.position.set( x, y, z );
+					mesh.rotation.set( rx, ry + Math.PI*1.25, rz );
+					mesh.scale.set( s, s, s );
+					shapeGroup.add( mesh );
+
+					// Front Right Fin
+					var mesh = new THREE.Mesh( geometry, XRLogoShader(new THREE.Color(0xFD0003), new THREE.Color(0xD20002), settings.logoHeight) );
+					mesh.position.set( x, y, z );
+					mesh.rotation.set( rx, ry + Math.PI*1.75, rz );
 					mesh.scale.set( s, s, s );
 					shapeGroup.add( mesh );
 
