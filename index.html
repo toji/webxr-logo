@@ -271,7 +271,7 @@
 
 			function onDocumentMouseUp() {
 				// make it end on a "logo look"
-				targetRotation = (Math.floor(targetRotation*2/Math.PI)) * Math.PI/2;
+				targetRotation = (Math.floor(targetRotation/Math.PI + 0.5)) * Math.PI;
 				document.removeEventListener( 'mousemove', onDocumentMouseMove, false );
 				document.removeEventListener( 'mouseup', onDocumentMouseUp, false );
 				document.removeEventListener( 'mouseout', onDocumentMouseOut, false );
@@ -280,7 +280,7 @@
 
 			function onDocumentMouseOut() {
 				// make it end on a "logo look"
-				targetRotation = (Math.floor(targetRotation*2/Math.PI)) * Math.PI/2;
+				targetRotation = (Math.floor(targetRotation/Math.PI + 0.5)) * Math.PI;
 				document.removeEventListener( 'mousemove', onDocumentMouseMove, false );
 				document.removeEventListener( 'mouseup', onDocumentMouseUp, false );
 				document.removeEventListener( 'mouseout', onDocumentMouseOut, false );
@@ -312,7 +312,7 @@
 			function onDocumentTouchEnd( event ) {
 				if ( event.touches.length == 0 ) {
 					// make it end on a "logo look"
-					targetRotation = (Math.floor(targetRotation*2/Math.PI)) * Math.PI/2;
+					targetRotation = (Math.floor(targetRotation/Math.PI + 0.5)) * Math.PI;
 					event.preventDefault();
 
 					document.removeEventListener( 'touchend', onDocumentTouchEnd, false );
